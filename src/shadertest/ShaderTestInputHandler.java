@@ -82,20 +82,32 @@ public class ShaderTestInputHandler extends InputHandler {
     public void keyPressed(KeyEvent e) {
         System.err.println("TAB? : " + e.getKeyCode());
         if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-            String start = "", finish = "";
-            int pos = 0;
-            for (Character c : shaderLines.get(linePosition).toCharArray()) {
-                if (pos < cursorPosition - 1) {
-                    start += c;
-                } else if (pos == cursorPosition - 1) {
-                } else {
-                    finish += c;
-                }
+            if (cursorPosition == 0) {
+                if (linePosition != 0) {
+                    linePosition -= 1;
+                    cursorPosition = shaderLines.get(linePosition).length();
+                    String start = shaderLines.get(linePosition).substring(0, cursorPosition);
+                    String finish = shaderLines.get(linePosition + 1);
 
-                pos++;
+                    shaderLines.set(linePosition, start + finish);
+                    shaderLines.remove(linePosition + 1);
+                }
+            } else {
+                String start = "", finish = "";
+                int pos = 0;
+                for (Character c : shaderLines.get(linePosition).toCharArray()) {
+                    if (pos < cursorPosition - 1) {
+                        start += c;
+                    } else if (pos == cursorPosition - 1) {
+                    } else {
+                        finish += c;
+                    }
+
+                    pos++;
+                }
+                shaderLines.set(linePosition, start + finish);
+                cursorPosition -= 1;
             }
-            shaderLines.set(linePosition, start + finish);
-            cursorPosition -= 1;
         } else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
             String start = "", finish = "";
             int pos = 0;

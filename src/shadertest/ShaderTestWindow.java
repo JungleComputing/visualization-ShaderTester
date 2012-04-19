@@ -155,11 +155,11 @@ public class ShaderTestWindow extends CommonWindow {
         testModel.init(gl);
 
         // TEXT
-        myText = new Text(Material.random());
+        myText = new Text(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
         myText.init(gl);
 
         try {
-            ((ShaderTestInputHandler) inputHandler).setShaderText(new File("shaders/fs_animatedTurbulence.fp"));
+            ((ShaderTestInputHandler) inputHandler).setShaderText(new File("shaders/fs_marble.fp"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
