@@ -29,24 +29,30 @@ import openglCommon.shaders.Program;
 import openglCommon.textures.Perlin3D;
 
 public class ShaderTestWindow extends CommonWindow {
-    private Program   animatedTurbulenceShader, postprocessShader, textShader;
+    private Program liveShader, postprocessShader, textShader;
 
-    private FBO       starFBO, hudFBO;
-    private Model     FSQ_postprocess;
+    private FBO starFBO, hudFBO;
+    private Model FSQ_postprocess;
 
-    private final int fontSize        = 20;
-    private Text      myText;
+    private final int fontSize = 20;
+    private Text myText;
 
-    private Perlin3D  noiseTex;
+    private Perlin3D noiseTex;
 
-    private float     offset          = 0;
+    private float offset = 0;
 
-    private Model     testModel;
+    private Model testModel;
 
-    private boolean   post_processing = false;
+    private final boolean post_processing = false;
 
-    private File      vsFile;
-    private MatF4     perspective;
+    private File vsFile;
+    private File fsFile;
+
+    private MatF4 perspective;
+
+    private String compilerMessage = "";
+
+    private static boolean reCompileNeeded = true;
 
     public ShaderTestWindow(ShaderTestInputHandler inputHandler) {
         super(inputHandler, true);
@@ -136,8 +142,9 @@ public class ShaderTestWindow extends CommonWindow {
 
         // Load and compile shaders, then use program.
         try {
-            vsFile = new File("shaders/vs_sunsurface.vp");
-            animatedTurbulenceShader = loader.createProgram(gl, vsFile, new File("shaders/fs_animatedTurbulence.fp"));
+            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"),
+                    "shaders/fs_animatedTurbulence.fp");
+
             textShader = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
                     "shaders/fs_curveShader.fp"));
             postprocessShader = loader.createProgram(gl, new File("shaders/vs_postprocess.vp"), new File(
@@ -157,12 +164,6 @@ public class ShaderTestWindow extends CommonWindow {
         // TEXT
         myText = new Text(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
         myText.init(gl);
-
-        try {
-            ((ShaderTestInputHandler) inputHandler).setShaderText(new File("shaders/fs_marble.fp"));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
         // FULL SCREEN QUADS
         FSQ_postprocess = new Quad(Material.random(), 2, 2, new VecF3(0, 0, 0.1f));
@@ -209,38 +210,21 @@ public class ShaderTestWindow extends CommonWindow {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
 
-        Program liveShader = animatedTurbulenceShader;
-        try {
-            liveShader = loader.createProgram(gl, vsFile, ((ShaderTestInputHandler) inputHandler).getShaderText());
-            liveShader.init(gl);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (CompilationFailedException e) {
-            liveShader = animatedTurbulenceShader;
-            System.err.println(e.getMessage());
-        }
-        if (liveShader != animatedTurbulenceShader) {
-            System.out.println("New Shader compiled succesfully!");
-            animatedTurbulenceShader = liveShader;
+        reCompile(gl);
 
-            animatedTurbulenceShader.setUniformMatrix("NormalMatrix", new MatF3());
-            animatedTurbulenceShader.setUniformMatrix("PMatrix", perspective);
-            animatedTurbulenceShader.setUniformMatrix("SMatrix", MatrixFMath.scale(1));
-        }
-
-        animatedTurbulenceShader.setUniformVector("HaloColor", Color4.red);
-        animatedTurbulenceShader.setUniform("StarDrawMode", 0);
+        liveShader.setUniformVector("HaloColor", Color4.red);
+        liveShader.setUniform("StarDrawMode", 0);
 
         noiseTex.use(gl);
-        animatedTurbulenceShader.setUniform("Noise", noiseTex.getMultitexNumber());
-        animatedTurbulenceShader.setUniform("NoiseScale", 1f);
+        liveShader.setUniform("Noise", noiseTex.getMultitexNumber());
+        liveShader.setUniform("NoiseScale", 1f);
 
-        animatedTurbulenceShader.setUniformMatrix("SMatrix", MatrixFMath.scale(1));
-        animatedTurbulenceShader.setUniform("Offset", offset);
+        liveShader.setUniformMatrix("SMatrix", MatrixFMath.scale(1));
+        liveShader.setUniform("Offset", offset);
 
         offset += .001f;
 
-        testModel.draw(gl, animatedTurbulenceShader, mv);
+        testModel.draw(gl, liveShader, mv);
 
         if (post_processing) {
             starFBO.unBind(gl);
@@ -285,5 +269,77 @@ public class ShaderTestWindow extends CommonWindow {
 
         starFBO.init(gl);
         hudFBO.init(gl);
+    }
+
+    private void setLiveFragmentShader(GL3 gl, Program target, File vertexShaderFile, String fragmentShaderFileName) {
+        vsFile = vertexShaderFile;
+        fsFile = null;
+        try {
+            liveShader = loader.createProgram(gl, vertexShaderFile, new File(fragmentShaderFileName));
+            ((ShaderTestInputHandler) inputHandler).setShaderText(new File(fragmentShaderFileName));
+            liveShader.init(gl);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (CompilationFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setLiveVertexShader(GL3 gl, Program target, String vertexShaderFileName, File fragmentShaderFile) {
+        vsFile = null;
+        fsFile = fragmentShaderFile;
+        try {
+            liveShader = loader.createProgram(gl, new File(vertexShaderFileName), fragmentShaderFile);
+            ((ShaderTestInputHandler) inputHandler).setShaderText(new File(vertexShaderFileName));
+            liveShader.init(gl);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (CompilationFailedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void reCompile(GL3 gl) {
+        if (reCompileNeeded) {
+            Program editedShader = liveShader;
+            String newCompilerMessage = "";
+            try {
+                if (fsFile == null) {
+                    editedShader = loader.createProgram(gl, vsFile,
+                            ((ShaderTestInputHandler) inputHandler).getShaderText());
+                } else {
+                    editedShader = loader.createProgram(gl, ((ShaderTestInputHandler) inputHandler).getShaderText(),
+                            fsFile);
+                }
+                editedShader.init(gl);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (CompilationFailedException e) {
+                editedShader = liveShader;
+                myText.setMaterial(new Material(Color4.t_yellow, Color4.t_yellow, Color4.t_yellow));
+
+                newCompilerMessage = e.getMessage();
+            }
+            if (editedShader != liveShader) {
+                newCompilerMessage = "New Shader compiled succesfully!";
+
+                myText.setMaterial(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
+
+                liveShader = editedShader;
+
+                liveShader.setUniformMatrix("NormalMatrix", new MatF3());
+                liveShader.setUniformMatrix("PMatrix", perspective);
+                liveShader.setUniformMatrix("SMatrix", MatrixFMath.scale(1));
+            }
+            if (newCompilerMessage.compareTo(compilerMessage) != 0) {
+                System.out.println(newCompilerMessage);
+                compilerMessage = newCompilerMessage;
+            }
+        }
+        reCompileNeeded = false;
+    }
+
+    public static void setRecompilationFlag() {
+        reCompileNeeded = true;
     }
 }

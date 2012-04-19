@@ -21,17 +21,17 @@ import openglCommon.util.InputHandler;
 import openglCommon.util.Settings;
 
 public class ShaderTestInputHandler extends InputHandler {
-    private Settings          settings            = Settings.getInstance();
-    private InputHandler      superClassInstance  = InputHandler.getInstance();
+    private final Settings settings = Settings.getInstance();
+    private final InputHandler superClassInstance = InputHandler.getInstance();
 
-    private String            shaderTextLine0     = "Please load a shader ...";
+    private final String shaderTextLine0 = "Please load a shader ...";
 
-    private ArrayList<String> shaderLines         = new ArrayList<String>();
-    private int               cursorPosition      = shaderTextLine0.length();
-    private int               linePosition        = 0;
-    private int               screenPosition      = 0;
+    private ArrayList<String> shaderLines = new ArrayList<String>();
+    private int cursorPosition = shaderTextLine0.length();
+    private int linePosition = 0;
+    private int screenPosition = 0;
 
-    private final int         MAX_SCREEN_POSITION = 30;
+    private final int MAX_SCREEN_POSITION = 30;
 
     private static class SingletonHolder {
         public static final ShaderTestInputHandler instance = new ShaderTestInputHandler();
@@ -47,40 +47,47 @@ public class ShaderTestInputHandler extends InputHandler {
         shaderLines.add(shaderTextLine0);
     }
 
+    @Override
     public void mouseClicked(MouseEvent e) {
     }
 
+    @Override
     public void mouseEntered(MouseEvent e) {
         // Empty - unneeded
     }
 
+    @Override
     public void mouseExited(MouseEvent e) {
         // Empty - unneeded
     }
 
+    @Override
     public void mousePressed(MouseEvent e) {
         superClassInstance.mousePressed(e);
     }
 
+    @Override
     public void mouseReleased(MouseEvent e) {
         superClassInstance.mouseReleased(e);
     }
 
+    @Override
     public void mouseDragged(MouseEvent e) {
         superClassInstance.mouseDragged(e);
     }
 
+    @Override
     public void mouseMoved(MouseEvent e) {
         // Empty - unneeded
     }
 
+    @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         superClassInstance.mouseWheelMoved(e);
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        System.err.println("TAB? : " + e.getKeyCode());
         if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
             if (cursorPosition == 0) {
                 if (linePosition != 0) {
@@ -172,19 +179,22 @@ public class ShaderTestInputHandler extends InputHandler {
         } else if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
             screenPosition += MAX_SCREEN_POSITION;
         } else if (!e.isActionKey()) {
-            String start = "", finish = "";
-            int pos = 0;
-            for (Character c : shaderLines.get(linePosition).toCharArray()) {
-                if (pos < cursorPosition) {
-                    start += c;
-                } else {
-                    finish += c;
-                }
+            if (e.getKeyCode() != KeyEvent.VK_SHIFT && e.getKeyCode() != KeyEvent.VK_CONTROL
+                    && e.getKeyCode() != KeyEvent.VK_ALT) {
+                String start = "", finish = "";
+                int pos = 0;
+                for (Character c : shaderLines.get(linePosition).toCharArray()) {
+                    if (pos < cursorPosition) {
+                        start += c;
+                    } else {
+                        finish += c;
+                    }
 
-                pos++;
+                    pos++;
+                }
+                shaderLines.set(linePosition, start + e.getKeyChar() + finish);
+                cursorPosition += 1;
             }
-            shaderLines.set(linePosition, start + e.getKeyChar() + finish);
-            cursorPosition += 1;
         }
 
         if (linePosition < 0)
@@ -203,6 +213,8 @@ public class ShaderTestInputHandler extends InputHandler {
             screenPosition = 0;
         if (screenPosition > shaderLines.size() - 1)
             screenPosition = shaderLines.size() - 1;
+
+        ShaderTestWindow.setRecompilationFlag();
     }
 
     @Override
@@ -214,22 +226,27 @@ public class ShaderTestInputHandler extends InputHandler {
     public void keyTyped(KeyEvent e) {
     }
 
+    @Override
     public octants getCurrentOctant() {
         return superClassInstance.getCurrentOctant();
     }
 
+    @Override
     public VecF3 getRotation() {
         return superClassInstance.getRotation();
     }
 
+    @Override
     public float getViewDist() {
         return superClassInstance.getViewDist();
     }
 
+    @Override
     public void setRotation(VecF3 rotation) {
         superClassInstance.setRotation(rotation);
     }
 
+    @Override
     public void setViewDist(float dist) {
         superClassInstance.setViewDist(dist);
     }
