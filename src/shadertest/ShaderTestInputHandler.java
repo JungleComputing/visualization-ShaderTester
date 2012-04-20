@@ -27,11 +27,16 @@ public class ShaderTestInputHandler extends InputHandler {
     private final String shaderTextLine0 = "Please load a shader ...";
 
     private ArrayList<String> shaderLines = new ArrayList<String>();
+    private ArrayList<String> selectionLines = new ArrayList<String>();
+
     private int cursorPosition = shaderTextLine0.length();
     private int linePosition = 0;
     private int screenPosition = 0;
 
+    private int selectionLineStartPosition = 0;
+
     private final int MAX_SCREEN_POSITION = 30;
+    private int selectionCursorStartPosition;
 
     private static class SingletonHolder {
         public static final ShaderTestInputHandler instance = new ShaderTestInputHandler();
@@ -206,6 +211,11 @@ public class ShaderTestInputHandler extends InputHandler {
         if (cursorPosition > shaderLines.get(linePosition).length())
             cursorPosition = shaderLines.get(linePosition).length();
 
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            selectionCursorStartPosition = cursorPosition;
+            selectionLineStartPosition = linePosition;
+        }
+
         if (linePosition > MAX_SCREEN_POSITION)
             screenPosition = linePosition - MAX_SCREEN_POSITION;
 
@@ -219,7 +229,61 @@ public class ShaderTestInputHandler extends InputHandler {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        // TODO Auto-generated method stub
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            int selectionCursorStopPosition = cursorPosition;
+            int selectionLineStopPosition = linePosition;
+
+            // swap order in weird selection cases
+            if (selectionLineStopPosition < selectionLineStartPosition) {
+                selectionLineStopPosition = selectionLineStartPosition;
+                selectionLineStartPosition = linePosition;
+            } else if (selectionLineStopPosition == selectionLineStartPosition) {
+                if (selectionCursorStopPosition < selectionCursorStartPosition) {
+                    selectionCursorStopPosition = selectionCursorStartPosition;
+                    selectionCursorStopPosition = cursorPosition;
+                }
+            }
+
+            ArrayList<String> newSelectionLines = new ArrayList<String>();
+
+            // select first line, from startCursor to end of line, or to
+            // endCursor
+            String selectionFirstLine = "";
+            int pos = 0;
+            for (Character c : shaderLines.get(selectionLineStartPosition).toCharArray()) {
+                if (selectionLineStopPosition != selectionLineStartPosition) {
+                    if (pos >= selectionCursorStartPosition) {
+                        selectionFirstLine += c;
+                    }
+                } else {
+                    if (pos >= selectionCursorStartPosition && pos < selectionCursorStopPosition) {
+                        selectionFirstLine += c;
+                    }
+                }
+                pos++;
+            }
+            newSelectionLines.add(selectionFirstLine);
+
+            for (int lineNR = selectionLineStartPosition + 1; lineNR < selectionLineStopPosition; lineNR++) {
+                if (lineNR < selectionLineStopPosition) {
+                    newSelectionLines.add(shaderLines.get(lineNR));
+                }
+            }
+
+            if (selectionLineStartPosition != selectionLineStopPosition) {
+                String selectionLastLine = "";
+                pos = 0;
+                for (Character c : shaderLines.get(selectionLineStopPosition).toCharArray()) {
+                    if (pos < selectionCursorStopPosition) {
+                        selectionLastLine += c;
+                    }
+                    pos++;
+                }
+                newSelectionLines.add(selectionLastLine);
+            }
+
+            selectionLines = newSelectionLines;
+        }
     }
 
     @Override
@@ -356,5 +420,23 @@ public class ShaderTestInputHandler extends InputHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean[] getSelectedMask() {
+        boolean[] result = new boolean[getScreenText().length()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = false;
+        }
+
+        return result;
+    }
+
+    public boolean[] getUnSelectedMask() {
+        boolean[] result = new boolean[getScreenText().length()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = true;
+        }
+
+        return result;
     }
 }
