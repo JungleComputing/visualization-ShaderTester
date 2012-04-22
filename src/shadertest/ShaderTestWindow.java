@@ -29,13 +29,14 @@ import openglCommon.shaders.Program;
 import openglCommon.textures.Perlin3D;
 
 public class ShaderTestWindow extends CommonWindow {
-    private Program liveShader, postprocessShader, textShader;
+    private Program liveShader, postprocessShader, textShader, textShaderSelected;
 
     private FBO starFBO, hudFBO;
     private Model FSQ_postprocess;
 
     private final int fontSize = 20;
     private Text myText;
+    private Text mySelectedText;
 
     private Perlin3D noiseTex;
 
@@ -147,6 +148,8 @@ public class ShaderTestWindow extends CommonWindow {
 
             textShader = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
                     "shaders/fs_curveShader.fp"));
+            textShaderSelected = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
+                    "shaders/fs_curveShader.fp"));
             postprocessShader = loader.createProgram(gl, new File("shaders/vs_postprocess.vp"), new File(
                     "shaders/fs_postprocess.fp"));
         } catch (final Exception e) {
@@ -163,7 +166,9 @@ public class ShaderTestWindow extends CommonWindow {
 
         // TEXT
         myText = new Text(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
+        mySelectedText = new Text(new Material(Color4.t_cyan, Color4.t_cyan, Color4.t_cyan));
         myText.init(gl);
+        mySelectedText.init(gl);
 
         // FULL SCREEN QUADS
         FSQ_postprocess = new Quad(Material.random(), 2, 2, new VecF3(0, 0, 0.1f));
@@ -187,10 +192,17 @@ public class ShaderTestWindow extends CommonWindow {
             gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
         }
 
-        final String text = ((ShaderTestInputHandler) inputHandler).getScreenText();
-        myText.setString(gl, textShader, font, text, fontSize);
+        ShaderTestInputHandler myInputHandler = (ShaderTestInputHandler) inputHandler;
+        final String text = myInputHandler.getScreenText();
 
+        myText.setString(gl, textShader, font, text, myInputHandler.getUnSelectedMask(), fontSize);
         myText.draw(gl, textShader, Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight - 40));
+
+        if (myInputHandler.isAnythingSelected()) {
+            mySelectedText.setString(gl, textShaderSelected, font, text, myInputHandler.getSelectedMask(), fontSize);
+            mySelectedText.draw(gl, textShaderSelected,
+                    Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight - 40));
+        }
 
         if (post_processing) {
             hudFBO.unBind(gl);
