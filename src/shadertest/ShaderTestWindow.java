@@ -29,29 +29,33 @@ import openglCommon.shaders.Program;
 import openglCommon.textures.Perlin3D;
 
 public class ShaderTestWindow extends CommonWindow {
-    private Program liveShader, postprocessShader, textShader, textShaderSelected;
+    private Program        liveShader, postprocessShader, textShader, textShaderSelected;
 
-    private FBO starFBO, hudFBO;
-    private Model FSQ_postprocess;
+    private FBO            starFBO, hudFBO;
+    private Model          FSQ_postprocess;
 
-    private final int fontSize = 20;
-    private Text myText;
-    private Text mySelectedText;
+    private final int      fontSize        = 20;
+    private Text           myText;
+    private Text           mySelectedText;
 
-    private Perlin3D noiseTex;
+    private Perlin3D       noiseTex;
 
-    private float offset = 0;
+    private float          offset          = 0;
 
-    private Model testModel;
+    private Model          testModel;
 
-    private final boolean post_processing = false;
+    private final boolean  post_processing = false;
 
-    private File vsFile;
-    private File fsFile;
+    private File           vsFile;
+    private File           fsFile;
 
-    private MatF4 perspective;
+    private MatF4          perspective;
 
-    private String compilerMessage = "";
+    private String         compilerMessage = "";
+
+    private boolean        newFragmentShader;
+    private boolean        newVertexShader;
+    private String         newShaderFileName;
 
     private static boolean reCompileNeeded = true;
 
@@ -73,6 +77,14 @@ public class ShaderTestWindow extends CommonWindow {
 
         final GL3 gl = drawable.getContext().getGL().getGL3();
         gl.glViewport(0, 0, canvasWidth, canvasHeight);
+
+        if (newFragmentShader) {
+            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"), newShaderFileName);
+            newFragmentShader = false;
+        } else if (newVertexShader) {
+            setLiveVertexShader(gl, liveShader, newShaderFileName, new File("shaders/fs_animatedTurbulence.fp"));
+            newVertexShader = false;
+        }
 
         displayContext(starFBO, hudFBO);
 
@@ -132,6 +144,12 @@ public class ShaderTestWindow extends CommonWindow {
         noiseTex.delete(gl);
         starFBO.delete(gl);
         hudFBO.delete(gl);
+
+        myText.delete(gl);
+        mySelectedText.delete(gl);
+
+        FSQ_postprocess.delete(gl);
+        testModel.delete(gl);
     }
 
     @Override
@@ -143,8 +161,7 @@ public class ShaderTestWindow extends CommonWindow {
 
         // Load and compile shaders, then use program.
         try {
-            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"),
-                    "shaders/fs_animatedTurbulence.fp");
+            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"), "shaders/fs_marble.fp");
 
             textShader = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
                     "shaders/fs_curveShader.fp"));
@@ -353,5 +370,15 @@ public class ShaderTestWindow extends CommonWindow {
 
     public static void setRecompilationFlag() {
         reCompileNeeded = true;
+    }
+
+    public void openFragmentShader(String fileName) {
+        newShaderFileName = fileName;
+        newFragmentShader = true;
+    }
+
+    public void openVertexShader(String fileName) {
+        newShaderFileName = fileName;
+        newVertexShader = true;
     }
 }
