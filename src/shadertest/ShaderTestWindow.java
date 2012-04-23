@@ -161,7 +161,8 @@ public class ShaderTestWindow extends CommonWindow {
 
         // Load and compile shaders, then use program.
         try {
-            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"), "shaders/fs_marble.fp");
+            setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"),
+                    "shaders/fs_animatedTurbulence.fp");
 
             textShader = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
                     "shaders/fs_curveShader.fp"));

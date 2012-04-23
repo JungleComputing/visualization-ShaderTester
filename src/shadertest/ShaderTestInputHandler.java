@@ -27,7 +27,6 @@ public class ShaderTestInputHandler extends InputHandler {
     private final String                 shaderTextLine0              = "Please load a shader ...";
 
     private ArrayList<String>            shaderLines                  = new ArrayList<String>();
-    private ArrayList<String>            selectionLines               = new ArrayList<String>();
     private ArrayList<String>            clipBoard                    = new ArrayList<String>();
     private ArrayList<ArrayList<String>> undoSave                     = new ArrayList<ArrayList<String>>();
 
@@ -41,9 +40,6 @@ public class ShaderTestInputHandler extends InputHandler {
     private int                          selectionCursorStopPosition  = 0;
 
     private final int                    MAX_SCREEN_POSITION          = 30;
-
-    private int                          selectionFieldStart;
-    private int                          selectionFieldStop;
 
     private static class SingletonHolder {
         public static final ShaderTestInputHandler instance = new ShaderTestInputHandler();
@@ -109,8 +105,7 @@ public class ShaderTestInputHandler extends InputHandler {
         }
 
         if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-            if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                    - selectionCursorStartPosition == 0)) {
+            if (isAnythingSelected()) {
                 deleteSection(selectionLineStartPosition, selectionLineStopPosition, selectionCursorStartPosition,
                         selectionCursorStopPosition);
             } else {
@@ -131,8 +126,7 @@ public class ShaderTestInputHandler extends InputHandler {
                 }
             }
         } else if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-            if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                    - selectionCursorStartPosition == 0)) {
+            if (isAnythingSelected()) {
                 deleteSection(selectionLineStartPosition, selectionLineStopPosition, selectionCursorStartPosition,
                         selectionCursorStopPosition);
             } else {
@@ -151,8 +145,7 @@ public class ShaderTestInputHandler extends InputHandler {
                 }
             }
         } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
-            if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                    - selectionCursorStartPosition == 0)) {
+            if (isAnythingSelected()) {
                 deleteSection(selectionLineStartPosition, selectionLineStopPosition, selectionCursorStartPosition,
                         selectionCursorStopPosition);
             }
@@ -160,8 +153,7 @@ public class ShaderTestInputHandler extends InputHandler {
             insertStringAt(linePosition, cursorPosition, "    ");
             cursorPosition += 4;
         } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                    - selectionCursorStartPosition == 0)) {
+            if (isAnythingSelected()) {
                 deleteSection(selectionLineStartPosition, selectionLineStopPosition, selectionCursorStartPosition,
                         selectionCursorStopPosition);
             }
@@ -203,8 +195,7 @@ public class ShaderTestInputHandler extends InputHandler {
         } else if (!e.isActionKey()) {
             if (e.getKeyCode() != KeyEvent.VK_SHIFT && e.getKeyCode() != KeyEvent.VK_CONTROL
                     && e.getKeyCode() != KeyEvent.VK_ALT && !e.isControlDown()) {
-                if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                        - selectionCursorStartPosition == 0)) {
+                if (isAnythingSelected()) {
                     deleteSection(selectionLineStartPosition, selectionLineStopPosition, selectionCursorStartPosition,
                             selectionCursorStopPosition);
                 }
@@ -239,8 +230,7 @@ public class ShaderTestInputHandler extends InputHandler {
             screenPosition = shaderLines.size() - 1;
 
         if (e.getKeyCode() == KeyEvent.VK_C && e.isControlDown()) {
-            if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
-                    - selectionCursorStartPosition == 0)) {
+            if (isAnythingSelected()) {
                 clipBoard = getSelection();
             }
         }
@@ -321,26 +311,7 @@ public class ShaderTestInputHandler extends InputHandler {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectionCursorStartPosition = cursorPosition;
             selectionLineStartPosition = linePosition;
-
-            selectionFieldStart = currentCursorPosInScreenString();
-            selectionFieldStop = selectionFieldStart;
         } else if (e.isShiftDown()) {
-            if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_UP
-                    || e.getKeyCode() == KeyEvent.VK_HOME || e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
-                if (currentCursorPosInScreenString() < selectionFieldStart) {
-                    selectionFieldStart = currentCursorPosInScreenString();
-                } else {
-                    selectionFieldStop = currentCursorPosInScreenString();
-                }
-            }
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_DOWN
-                    || e.getKeyCode() == KeyEvent.VK_END || e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
-                if (currentCursorPosInScreenString() > selectionFieldStop) {
-                    selectionFieldStop = currentCursorPosInScreenString();
-                } else {
-                    selectionFieldStart = currentCursorPosInScreenString();
-                }
-            }
             selectionCursorStopPosition = cursorPosition;
             selectionLineStopPosition = linePosition;
         } else if (e.getKeyCode() != KeyEvent.VK_CONTROL && !(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_C)) {
@@ -348,10 +319,6 @@ public class ShaderTestInputHandler extends InputHandler {
             selectionLineStartPosition = linePosition;
             selectionCursorStopPosition = cursorPosition;
             selectionLineStopPosition = linePosition;
-
-            selectionFieldStart = currentCursorPosInScreenString();
-            selectionFieldStop = selectionFieldStart;
-
         }
     }
 
@@ -406,14 +373,14 @@ public class ShaderTestInputHandler extends InputHandler {
         }
     }
 
-    private int currentCursorPosInScreenString() {
+    private int posInScreenString(int lineIndex, int cursorIndex) {
         int result = 0;
         // First add the length of all lines before this one
-        for (int lineNR = 0; lineNR < linePosition - screenPosition; lineNR++) {
+        for (int lineNR = 0; lineNR < lineIndex - screenPosition; lineNR++) {
             result += shaderLines.get(lineNR).length() + 1;
         }
         // then add the length of this line until the cursor position
-        result += cursorPosition;
+        result += cursorIndex;
 
         return result;
     }
@@ -559,16 +526,36 @@ public class ShaderTestInputHandler extends InputHandler {
     }
 
     public boolean isAnythingSelected() {
-        if (selectionFieldStop - selectionFieldStart > 0) {
+        if (!(selectionLineStopPosition - selectionLineStartPosition == 0 && selectionCursorStopPosition
+                - selectionCursorStartPosition == 0)) {
             return true;
         }
         return false;
     }
 
     public boolean[] getSelectedMask() {
+        // swap order in weird selection cases
+        int temp;
+        int startLineIndex = selectionLineStartPosition;
+        int stopLineIndex = selectionLineStartPosition;
+        int startCursorIndex = selectionCursorStartPosition;
+        int stopCursorIndex = selectionCursorStopPosition;
+
+        if (stopLineIndex < startLineIndex) {
+            temp = stopLineIndex;
+            stopLineIndex = startLineIndex;
+            startLineIndex = temp;
+        } else if (stopLineIndex == startLineIndex) {
+            if (stopCursorIndex < startCursorIndex) {
+                temp = stopCursorIndex;
+                stopCursorIndex = startCursorIndex;
+                startCursorIndex = temp;
+            }
+        }
         boolean[] result = new boolean[getScreenText().length()];
         for (int i = 0; i < result.length; i++) {
-            if (i >= selectionFieldStart && i < selectionFieldStop) {
+            if (i >= posInScreenString(startLineIndex, startCursorIndex)
+                    && i < posInScreenString(stopLineIndex, stopCursorIndex)) {
                 result[i] = true;
             } else {
                 result[i] = false;

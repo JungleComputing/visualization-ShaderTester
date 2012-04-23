@@ -45,7 +45,7 @@ public class ShaderTestPanel extends CommonPanel {
     }
 
     private File openFile() {
-        final JFileChooser fileChooser = new JFileChooser();
+        final JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
 
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         final int result = fileChooser.showOpenDialog(this);
