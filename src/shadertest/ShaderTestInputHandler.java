@@ -595,6 +595,40 @@ public class ShaderTestInputHandler extends InputHandler {
         return false;
     }
 
+    private boolean isMovementForward(KeyEvent e) {
+        int code = e.getKeyCode();
+        if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_RIGHT || code == KeyEvent.VK_PAGE_DOWN
+                || code == KeyEvent.VK_END) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isMovementBackward(KeyEvent e) {
+        int code = e.getKeyCode();
+        if (code == KeyEvent.VK_UP || code == KeyEvent.VK_LEFT || code == KeyEvent.VK_PAGE_UP
+                || code == KeyEvent.VK_HOME) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean currentPosBeforeSelectionStart() {
+        if (linePosition < selectionLineStartPosition
+                || (linePosition == selectionLineStartPosition && cursorPosition < selectionCursorStartPosition)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean currentPosAfterSelectionStop() {
+        if (linePosition > selectionLineStopPosition
+                || (linePosition == selectionLineStopPosition && cursorPosition > selectionCursorStopPosition)) {
+            return true;
+        }
+        return false;
+    }
+
     private void deleteSection(int startLineIndex, int stopLineIndex, int startCursorindex, int stopCursorindex) {
         // swap order in weird selection cases
         int temp;
