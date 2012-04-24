@@ -46,8 +46,8 @@ public class ShaderTestWindow extends CommonWindow {
 
     private final boolean  post_processing = false;
 
-    private File           vsFile;
-    private File           fsFile;
+    private static File    vsFile;
+    private static File    fsFile;
 
     private MatF4          perspective;
 
@@ -367,6 +367,12 @@ public class ShaderTestWindow extends CommonWindow {
             }
         }
         reCompileNeeded = false;
+    }
+
+    public static boolean isFragmentShader() {
+        if (fsFile == null)
+            return true;
+        return false;
     }
 
     public static void setRecompilationFlag() {

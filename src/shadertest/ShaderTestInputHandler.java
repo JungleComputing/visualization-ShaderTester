@@ -94,6 +94,7 @@ public class ShaderTestInputHandler extends InputHandler {
         superClassInstance.mouseWheelMoved(e);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_Z) {
@@ -309,8 +310,10 @@ public class ShaderTestInputHandler extends InputHandler {
 
     private void handleSelection(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-            selectionCursorStartPosition = cursorPosition;
-            selectionLineStartPosition = linePosition;
+            if (!isAnythingSelected()) {
+                selectionCursorStartPosition = cursorPosition;
+                selectionLineStartPosition = linePosition;
+            }
         } else if (e.isShiftDown() && isMovementKey(e)) {
             selectionCursorStopPosition = cursorPosition;
             selectionLineStopPosition = linePosition;
@@ -376,7 +379,7 @@ public class ShaderTestInputHandler extends InputHandler {
     private int posInScreenString(int lineIndex, int cursorIndex) {
         int result = 0;
         // First add the length of all lines before this one
-        for (int lineNR = 0; lineNR < lineIndex - screenPosition; lineNR++) {
+        for (int lineNR = screenPosition; lineNR < lineIndex; lineNR++) {
             result += shaderLines.get(lineNR).length() + 1;
         }
         // then add the length of this line until the cursor position
@@ -501,7 +504,13 @@ public class ShaderTestInputHandler extends InputHandler {
         try {
             int attempt = 1;
             while (newFile.exists()) {
-                String newName = bareName + " (" + attempt + ").txt";
+                String newName = bareName + " (" + attempt + ")";
+
+                if (ShaderTestWindow.isFragmentShader()) {
+                    newName += ".fp";
+                } else {
+                    newName += ".vp";
+                }
                 newFile = new File(newName);
 
                 attempt++;
@@ -513,7 +522,7 @@ public class ShaderTestInputHandler extends InputHandler {
             PrintWriter out = new PrintWriter(outFile);
 
             for (String line : shaderLines) {
-                out.println(line + "\n");
+                out.println(line);
             }
 
             out.close();
@@ -537,7 +546,7 @@ public class ShaderTestInputHandler extends InputHandler {
         // swap order in weird selection cases
         int temp;
         int startLineIndex = selectionLineStartPosition;
-        int stopLineIndex = selectionLineStartPosition;
+        int stopLineIndex = selectionLineStopPosition;
         int startCursorIndex = selectionCursorStartPosition;
         int stopCursorIndex = selectionCursorStopPosition;
 
@@ -552,6 +561,7 @@ public class ShaderTestInputHandler extends InputHandler {
                 startCursorIndex = temp;
             }
         }
+
         boolean[] result = new boolean[getScreenText().length()];
         for (int i = 0; i < result.length; i++) {
             if (i >= posInScreenString(startLineIndex, startCursorIndex)
@@ -578,7 +588,8 @@ public class ShaderTestInputHandler extends InputHandler {
     private boolean isMovementKey(KeyEvent e) {
         int code = e.getKeyCode();
         if (code == KeyEvent.VK_UP || code == KeyEvent.VK_DOWN || code == KeyEvent.VK_LEFT || code == KeyEvent.VK_RIGHT
-                || code == KeyEvent.VK_PAGE_UP || code == KeyEvent.VK_PAGE_DOWN) {
+                || code == KeyEvent.VK_PAGE_UP || code == KeyEvent.VK_PAGE_DOWN || code == KeyEvent.VK_HOME
+                || code == KeyEvent.VK_END) {
             return true;
         }
         return false;
