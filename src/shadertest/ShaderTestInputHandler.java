@@ -311,7 +311,7 @@ public class ShaderTestInputHandler extends InputHandler {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             selectionCursorStartPosition = cursorPosition;
             selectionLineStartPosition = linePosition;
-        } else if (e.isShiftDown()) {
+        } else if (e.isShiftDown() && isMovementKey(e)) {
             selectionCursorStopPosition = cursorPosition;
             selectionLineStopPosition = linePosition;
         } else if (e.getKeyCode() != KeyEvent.VK_CONTROL && !(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_C)) {
@@ -548,7 +548,7 @@ public class ShaderTestInputHandler extends InputHandler {
         } else if (stopLineIndex == startLineIndex) {
             if (stopCursorIndex < startCursorIndex) {
                 temp = stopCursorIndex;
-                stopCursorIndex = startCursorIndex;
+                stopCursorIndex = startCursorIndex + 1;
                 startCursorIndex = temp;
             }
         }
