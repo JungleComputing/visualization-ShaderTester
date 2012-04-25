@@ -306,7 +306,7 @@ public class ShaderTestWindow extends CommonWindow {
         fsFile = null;
         try {
             liveShader = loader.createProgram(gl, vertexShaderFile, new File(fragmentShaderFileName));
-            ((ShaderTestInputHandler) inputHandler).setShaderText(new File(fragmentShaderFileName));
+            ((ShaderTestInputHandler) inputHandler).setText(new File(fragmentShaderFileName));
             liveShader.init(gl);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -320,7 +320,7 @@ public class ShaderTestWindow extends CommonWindow {
         fsFile = fragmentShaderFile;
         try {
             liveShader = loader.createProgram(gl, new File(vertexShaderFileName), fragmentShaderFile);
-            ((ShaderTestInputHandler) inputHandler).setShaderText(new File(vertexShaderFileName));
+            ((ShaderTestInputHandler) inputHandler).setText(new File(vertexShaderFileName));
             liveShader.init(gl);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -335,11 +335,9 @@ public class ShaderTestWindow extends CommonWindow {
             String newCompilerMessage = "";
             try {
                 if (fsFile == null) {
-                    editedShader = loader.createProgram(gl, vsFile,
-                            ((ShaderTestInputHandler) inputHandler).getShaderText());
+                    editedShader = loader.createProgram(gl, vsFile, ((ShaderTestInputHandler) inputHandler).getText());
                 } else {
-                    editedShader = loader.createProgram(gl, ((ShaderTestInputHandler) inputHandler).getShaderText(),
-                            fsFile);
+                    editedShader = loader.createProgram(gl, ((ShaderTestInputHandler) inputHandler).getText(), fsFile);
                 }
                 editedShader.init(gl);
             } catch (FileNotFoundException e) {
