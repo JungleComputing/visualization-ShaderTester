@@ -22,6 +22,7 @@ import openglCommon.math.Point4;
 import openglCommon.math.VecF3;
 import openglCommon.math.VecF4;
 import openglCommon.models.Model;
+import openglCommon.models.MultiColorText;
 import openglCommon.models.Text;
 import openglCommon.models.base.Quad;
 import openglCommon.models.base.Sphere;
@@ -29,14 +30,15 @@ import openglCommon.shaders.Program;
 import openglCommon.textures.Perlin3D;
 
 public class ShaderTestWindow extends CommonWindow {
-    private Program        liveShader, postprocessShader, textShader, textShaderSelected;
+    private Program        liveShader, postprocessShader, textShader; // textShaderSelected,
+                                                                      // textShaderUnSelected;
 
     private FBO            starFBO, hudFBO;
     private Model          FSQ_postprocess;
 
     private final int      fontSize        = 20;
-    private Text           myText;
-    private Text           mySelectedText;
+    private MultiColorText myText;
+    // private Text myUnselectedText, mySelectedText;
 
     private Perlin3D       noiseTex;
 
@@ -146,7 +148,8 @@ public class ShaderTestWindow extends CommonWindow {
         hudFBO.delete(gl);
 
         myText.delete(gl);
-        mySelectedText.delete(gl);
+        // myUnselectedText.delete(gl);
+        // mySelectedText.delete(gl);
 
         FSQ_postprocess.delete(gl);
         testModel.delete(gl);
@@ -164,10 +167,15 @@ public class ShaderTestWindow extends CommonWindow {
             setLiveFragmentShader(gl, liveShader, new File("shaders/vs_sunsurface.vp"),
                     "shaders/fs_animatedTurbulence.fp");
 
-            textShader = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
-                    "shaders/fs_curveShader.fp"));
-            textShaderSelected = loader.createProgram(gl, new File("shaders/vs_curveShader.vp"), new File(
-                    "shaders/fs_curveShader.fp"));
+            textShader = loader.createProgram(gl, new File("shaders/vs_multiColorTextShader.vp"), new File(
+                    "shaders/fs_multiColorTextShader.fp"));
+            // textShaderUnSelected = loader.createProgram(gl, new
+            // File("shaders/vs_curveShader.vp"), new File(
+            // "shaders/fs_curveShader.fp"));
+            //
+            // textShaderSelected = loader.createProgram(gl, new
+            // File("shaders/vs_curveShader.vp"), new File(
+            // "shaders/fs_curveShader.fp"));
             postprocessShader = loader.createProgram(gl, new File("shaders/vs_postprocess.vp"), new File(
                     "shaders/fs_postprocess.fp"));
         } catch (final Exception e) {
@@ -183,10 +191,14 @@ public class ShaderTestWindow extends CommonWindow {
         testModel.init(gl);
 
         // TEXT
-        myText = new Text(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
-        mySelectedText = new Text(new Material(Color4.t_cyan, Color4.t_cyan, Color4.t_cyan));
+        myText = new MultiColorText(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
+        // myUnselectedText = new Text(new Material(Color4.t_green,
+        // Color4.t_green, Color4.t_green));
+        // mySelectedText = new Text(new Material(Color4.t_cyan, Color4.t_cyan,
+        // Color4.t_cyan));
         myText.init(gl);
-        mySelectedText.init(gl);
+        // myUnselectedText.init(gl);
+        // mySelectedText.init(gl);
 
         // FULL SCREEN QUADS
         FSQ_postprocess = new Quad(Material.random(), 2, 2, new VecF3(0, 0, 0.1f));
@@ -213,14 +225,22 @@ public class ShaderTestWindow extends CommonWindow {
         ShaderTestInputHandler myInputHandler = (ShaderTestInputHandler) inputHandler;
         final String text = myInputHandler.getScreenText();
 
-        myText.setString(gl, textShader, font, text, myInputHandler.getUnSelectedMask(), fontSize);
+        myText.setString(gl, textShader, font, text, Color4.t_green, fontSize);
         myText.draw(gl, textShader, Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight - 40));
 
-        if (myInputHandler.isAnythingSelected()) {
-            mySelectedText.setString(gl, textShaderSelected, font, text, myInputHandler.getSelectedMask(), fontSize);
-            mySelectedText.draw(gl, textShaderSelected,
-                    Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight - 40));
-        }
+        // myUnselectedText.setString(gl, textShaderUnSelected, font, text,
+        // myInputHandler.getUnSelectedMask(), fontSize);
+        // myUnselectedText.draw(gl, textShaderUnSelected,
+        // Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight -
+        // 40));
+        //
+        // if (myInputHandler.isAnythingSelected()) {
+        // mySelectedText.setString(gl, textShaderSelected, font, text,
+        // myInputHandler.getSelectedMask(), fontSize);
+        // mySelectedText.draw(gl, textShaderSelected,
+        // Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight -
+        // 40));
+        // }
 
         if (post_processing) {
             hudFBO.unBind(gl);
@@ -345,6 +365,8 @@ public class ShaderTestWindow extends CommonWindow {
             } catch (CompilationFailedException e) {
                 editedShader = liveShader;
                 myText.setMaterial(new Material(Color4.t_yellow, Color4.t_yellow, Color4.t_yellow));
+                // myUnselectedText.setMaterial(new Material(Color4.t_yellow,
+                // Color4.t_yellow, Color4.t_yellow));
 
                 newCompilerMessage = e.getMessage();
             }
@@ -352,6 +374,8 @@ public class ShaderTestWindow extends CommonWindow {
                 newCompilerMessage = "New Shader compiled succesfully!";
 
                 myText.setMaterial(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
+                // myUnselectedText.setMaterial(new Material(Color4.t_yellow,
+                // Color4.t_yellow, Color4.t_yellow));
 
                 liveShader = editedShader;
 
