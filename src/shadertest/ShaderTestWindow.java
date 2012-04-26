@@ -225,7 +225,17 @@ public class ShaderTestWindow extends CommonWindow {
         ShaderTestInputHandler myInputHandler = (ShaderTestInputHandler) inputHandler;
         final String text = myInputHandler.getScreenText();
 
-        myText.setString(gl, textShader, font, text, Color4.t_green, fontSize);
+        // Set text
+        myText.setString(gl, textShader, font, text, Color4.green, fontSize);
+
+        // Add colors
+        String selection = myInputHandler.getSelectedText();
+        int selectionIndex = myInputHandler.getSelectedTextIndex();
+        myText.setSubstringColors(gl, ((ShaderTestInputHandler) inputHandler).getSyntaxColors());
+        myText.setSubstringAtIndexColor(gl, selectionIndex, selection, Color4.cyan);
+        myText.finalizeColorScheme(gl);
+
+        // Draw
         myText.draw(gl, textShader, Text.getPMVForHUD(canvasWidth, canvasHeight, 30f, 2 * canvasHeight - 40));
 
         // myUnselectedText.setString(gl, textShaderUnSelected, font, text,

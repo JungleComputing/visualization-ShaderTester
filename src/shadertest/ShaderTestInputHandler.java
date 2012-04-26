@@ -7,17 +7,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 
 import javax.media.opengl.GLException;
 
+import openglCommon.math.Color4;
 import openglCommon.math.VecF3;
 import openglCommon.util.InputHandler;
 import openglCommon.util.Settings;
 import openglCommon.util.TextEditorKeyboardHandler;
 
 public class ShaderTestInputHandler extends TextEditorKeyboardHandler {
-    private final Settings     settings           = Settings.getInstance();
-    private final InputHandler superClassInstance = InputHandler.getInstance();
+    private final Settings          settings           = Settings.getInstance();
+    private final InputHandler      superClassInstance = InputHandler.getInstance();
+    private HashMap<String, Color4> syntaxColors;
 
     private static class SingletonHolder {
         public static final ShaderTestInputHandler instance = new ShaderTestInputHandler();
@@ -29,6 +32,72 @@ public class ShaderTestInputHandler extends TextEditorKeyboardHandler {
 
     protected ShaderTestInputHandler() {
         super();
+        syntaxColors = new HashMap<String, Color4>();
+
+        // Vertex shader special outputs
+        syntaxColors.put("gl_Position", Color4.sickly_green);
+        syntaxColors.put("gl_PointSize", Color4.sickly_green);
+        syntaxColors.put("gl_ClipVertex", Color4.sickly_green);
+
+        // Fragment shader special inputs
+        syntaxColors.put("gl_FragCoord", Color4.sickly_green);
+        syntaxColors.put("gl_FrontFacing", Color4.sickly_green);
+
+        // Fragment shader special outputs
+        syntaxColors.put("gl_FragColor", Color4.sickly_green);
+        syntaxColors.put("gl_FragData[gl_MaxDrawBuffers]", Color4.sickly_green);
+        syntaxColors.put("gl_FragDepth", Color4.sickly_green);
+
+        // keywords
+        syntaxColors.put("void", Color4.magenta);
+        syntaxColors.put("in", Color4.magenta);
+        syntaxColors.put("out", Color4.magenta);
+        syntaxColors.put("inout", Color4.magenta);
+        syntaxColors.put("uniform", Color4.magenta);
+        syntaxColors.put("const", Color4.magenta);
+        syntaxColors.put("attribute", Color4.magenta);
+        syntaxColors.put("varying", Color4.magenta);
+
+        syntaxColors.put("if", Color4.magenta);
+        syntaxColors.put("for", Color4.magenta);
+        syntaxColors.put("else", Color4.magenta);
+
+        // Variable types
+        syntaxColors.put("int", Color4.blue);
+        syntaxColors.put("ivec2", Color4.blue);
+        syntaxColors.put("ivec3", Color4.blue);
+        syntaxColors.put("ivec4", Color4.blue);
+        syntaxColors.put("float", Color4.blue);
+        syntaxColors.put("vec2", Color4.blue);
+        syntaxColors.put("vec3", Color4.blue);
+        syntaxColors.put("vec4", Color4.blue);
+        syntaxColors.put("mat3", Color4.blue);
+        syntaxColors.put("mat4", Color4.blue);
+        syntaxColors.put("bool", Color4.blue);
+        syntaxColors.put("bvec2", Color4.blue);
+        syntaxColors.put("bvec3", Color4.blue);
+        syntaxColors.put("bvec4", Color4.blue);
+        syntaxColors.put("sampler1D", Color4.blue);
+        syntaxColors.put("sampler2D", Color4.blue);
+        syntaxColors.put("sampler3D", Color4.blue);
+        syntaxColors.put("samplerCube", Color4.blue);
+        syntaxColors.put("sampler1DShadow", Color4.blue);
+        syntaxColors.put("sampler2DShadow", Color4.blue);
+
+        // functions
+        syntaxColors.put("abs", Color4.sickly_magenta);
+        syntaxColors.put("ceil", Color4.sickly_magenta);
+        syntaxColors.put("floor", Color4.sickly_magenta);
+        syntaxColors.put("fract", Color4.sickly_magenta);
+        syntaxColors.put("min", Color4.sickly_magenta);
+        syntaxColors.put("max", Color4.sickly_magenta);
+        syntaxColors.put("mod", Color4.sickly_magenta);
+        syntaxColors.put("clamp", Color4.sickly_magenta);
+        syntaxColors.put("sign", Color4.sickly_magenta);
+        syntaxColors.put("smoothstep", Color4.sickly_magenta);
+        syntaxColors.put("step", Color4.sickly_magenta);
+        syntaxColors.put("mix", Color4.sickly_magenta);
+        syntaxColors.put("texture", Color4.sickly_magenta);
     }
 
     @Override
@@ -143,5 +212,9 @@ public class ShaderTestInputHandler extends TextEditorKeyboardHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public HashMap<String, Color4> getSyntaxColors() {
+        return syntaxColors;
     }
 }
