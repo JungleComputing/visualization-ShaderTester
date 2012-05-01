@@ -143,7 +143,9 @@ public class ShaderTestInputHandler extends TextEditorKeyboardHandler {
     public void keyPressed(KeyEvent e) {
         super.keyPressed(e);
 
-        ShaderTestWindow.setRecompilationFlag();
+        if (!isMovementKey(e)) {
+            ShaderTestWindow.setRecompilationFlag();
+        }
     }
 
     @Override

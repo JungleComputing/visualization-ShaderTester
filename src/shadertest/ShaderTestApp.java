@@ -13,7 +13,7 @@ public class ShaderTestApp {
 
         path = System.getProperty("user.dir");
 
-        final JFrame frame = new JFrame("Amuse Visualization");
+        final JFrame frame = new JFrame("Shader Tester");
         frame.setPreferredSize(new Dimension(1024, 768));
 
         final ShaderTestWindow window = new ShaderTestWindow(ShaderTestInputHandler.getInstance());
