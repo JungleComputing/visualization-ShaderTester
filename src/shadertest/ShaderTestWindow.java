@@ -176,11 +176,11 @@ public class ShaderTestWindow extends CommonWindow {
         // TEST MODEL
         Material testMaterial = new Material();
         testMaterial.setColor(Color4.red);
-        testModel = new Sphere(testMaterial, 3, 50f, new VecF3());
+        testModel = new Sphere(testMaterial, 3, 50f, new VecF3(), true);
         testModel.init(gl);
 
         // TEXT
-        myText = new MultiColorText(new Material(Color4.t_green, Color4.t_green, Color4.t_green));
+        myText = new MultiColorText(new Material(Color4.t_green, Color4.t_green, Color4.t_green), font);
         myText.init(gl);
 
         // FULL SCREEN QUADS
@@ -218,7 +218,7 @@ public class ShaderTestWindow extends CommonWindow {
         final String text = myInputHandler.getScreenText();
 
         // Set text
-        myText.setString(gl, textShader, font, text, baseColor, fontSize);
+        myText.setString(gl, text, baseColor, fontSize);
 
         // Add colors
         String selection = myInputHandler.getSelectedText();
@@ -306,9 +306,18 @@ public class ShaderTestWindow extends CommonWindow {
         vsFile = vertexShaderFile;
         fsFile = null;
         try {
+            int oldProgramIndex = -1;
+            if (liveShader != null) {
+                oldProgramIndex = liveShader.pointer;
+            }
+
             liveShader = loader.createProgram(gl, "live", vertexShaderFile, new File(fragmentShaderFileName));
             ((ShaderTestInputHandler) inputHandler).setText(new File(fragmentShaderFileName));
             liveShader.init(gl);
+
+            if (liveShader.pointer != oldProgramIndex) {
+                loader.deleteProgram(gl, oldProgramIndex);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (CompilationFailedException e) {
@@ -320,9 +329,18 @@ public class ShaderTestWindow extends CommonWindow {
         vsFile = null;
         fsFile = fragmentShaderFile;
         try {
+            int oldProgramIndex = -1;
+            if (liveShader != null) {
+                oldProgramIndex = liveShader.pointer;
+            }
+
             liveShader = loader.createProgram(gl, "live", new File(vertexShaderFileName), fragmentShaderFile);
             ((ShaderTestInputHandler) inputHandler).setText(new File(vertexShaderFileName));
             liveShader.init(gl);
+
+            if (liveShader.pointer != oldProgramIndex) {
+                loader.deleteProgram(gl, oldProgramIndex);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (CompilationFailedException e) {
